@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>עיצוב מערכות סדרתיות - P1</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .content-section { margin-bottom: 2.5rem; }
+        .content-section h2 { color: #1a1a2e; margin-bottom: 1rem; border-bottom: 2px solid #1a1a2e; padding-bottom: 0.5rem; }
+        .content-section h3 { color: #2d3748; margin: 1.5rem 0 0.75rem; }
+        .content-section p, .content-section li { margin-bottom: 0.5rem; }
+        .content-section ul { margin-right: 1.5rem; }
+        .step-box { background: #f0f4f8; padding: 1rem; border-radius: 8px; margin: 1rem 0; border-right: 4px solid #1a1a2e; }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+        th, td { border: 1px solid #ddd; padding: 0.5rem 1rem; text-align: center; }
+        th { background: #1a1a2e; color: #fff; }
+        .comparison-table th { text-align: right; }
+        .example-box { background: #e8f4f8; padding: 1rem; border-radius: 8px; margin: 1rem 0; border: 1px solid #b8d4e0; }
+        .example-box h4 { margin-bottom: 0.5rem; color: #1a1a2e; }
+        code { background: #eee; padding: 0.2rem 0.4rem; border-radius: 4px; font-family: monospace; }
+        .toc { background: #fff; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .toc ol { margin-right: 1.5rem; }
+        .toc a { color: #1a1a2e; text-decoration: none; }
+        .toc a:hover { text-decoration: underline; }
+        .img-section img { max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 8px; display: block; margin: 1rem auto; }
+        .timing-pre { direction: ltr; text-align: left; unicode-bidi: bidi-override; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>עיצוב מערכות סדרתיות - P1</h1>
+    </header>
+
+    <main>
+        <nav class="toc">
+            <h2>תוכן העניינים</h2>
+            <ol>
+                <li><a href="#excitation">טבלאות עירור</a></li>
+                <li><a href="#sequential">עיצוב מעגלים סדרתיים</a></li>
+                <li><a href="#recognizer">מזהה רצף – 5 שלבים + דוגמת "1001"</a></li>
+                <li><a href="#timing">דיאגרמת תזמון</a></li>
+                <li><a href="#s1-output">פלט s1.png</a></li>
+                <li><a href="#dff">D Flip-Flops</a></li>
+                <li><a href="#truth-tables">טבלאות אמת לרכיבים</a></li>
+                <li><a href="#sr-operation">מעגל SR – sr.png</a></li>
+                <li><a href="#comparison">השוואת Flip-Flops</a></li>
+                <li><a href="#mealy-moore">Mealy לעומת Moore + דוגמאות מהחיים</a></li>
+                <li><a href="#mealy-circuit">מעגל Mealy – maly.png</a></li>
+            </ol>
+        </nav>
+        <section class="content-section" id="excitation">
+            <h2>טבלאות עירור (Excitation Tables)</h2>
+            <p>טבלאות עירור מתארות את ערכי הכניסה הנדרשים ל-flip-flop כדי שיעבור ממצב נוכחי למצב הבא. לכל סוג flip-flop (SR, JK, D, T) יש טבלת עירור משלה.</p>
+            <p>הטבלה מגדירה: בהינתן המצב הנוכחי (Q) והמצב הרצוי הבא (Q+), מה צריכות להיות כניסות ה-flip-flop.</p>
+            <div class="example-box">
+                <h4>דוגמה – טבלת עירור ל-JK Flip-Flop:</h4>
+                <table>
+                    <tr><th>Q</th><th>Q+</th><th>J</th><th>K</th></tr>
+                    <tr><td>0</td><td>0</td><td>0</td><td>X</td></tr>
+                    <tr><td>0</td><td>1</td><td>1</td><td>X</td></tr>
+                    <tr><td>1</td><td>0</td><td>X</td><td>1</td></tr>
+                    <tr><td>1</td><td>1</td><td>X</td><td>0</td></tr>
+                </table>
+                <p>דוגמה: אם Q=0 ורוצים Q+=1, צריך J=1 ו-K יכול להיות 0 או 1 (X = don't care).</p>
+            </div>
+        </section>
+
+        <section class="content-section" id="sequential">
+            <h2>עיצוב מעגלים סדרתיים (Sequential Circuit Design)</h2>
+            <p>מעגל סדרתי הוא מעגל שבו הפלט תלוי לא רק בכניסות הנוכחיות אלא גם בהיסטוריה של הכניסות. העיצוב כולל:</p>
+            <ul>
+                <li>הגדרת מצבים (states) והמעברים ביניהם</li>
+                <li>שימוש ב-flip-flops לאחסון המצב</li>
+                <li>לוגיקה קומבינטורית לחישוב המצב הבא והפלט</li>
+            </ul>
+            <div class="example-box">
+                <h4>דוגמה – מונה בינארי (Binary Counter):</h4>
+                <p>מונה 2 ביטים: מצבים 00→01→10→11→00. כל פעימת שעון עובר למצב הבא. משתמשים ב-2 flip-flops. הלוגיקה: Q1+ = Q1⊕Q0, Q0+ = Q0' (או T flip-flop עם T=1).</p>
+            </div>
+        </section>
+
+        <section class="content-section" id="recognizer">
+            <h2>דוגמה: עיצוב מזהה רצף (Sequence Recognizer Design)</h2>
+            <p>מזהה רצף הוא מעגל שמזהה דפוס מסוים בסדרת קלט ומפיק פלט בהתאם. להלן דוגמה מלאה עם ערכים בינאריים – מזהה רצף "11":</p>
+
+            <div class="example-box" style="background: #fff8e8; border-color: #e8d4a0;">
+                <h4>דוגמה מלאה בערכים בינאריים – מזהה "11"</h4>
+                <p><strong>מטרה:</strong> פלט Z=1 כאשר הקלט X מכיל שני 1-ים רצופים.</p>
+                <p><strong>שלב 1 – טבלת מצבים עם קודים בינאריים:</strong></p>
+                <table>
+                    <tr><th>מצב</th><th>Q1 Q0</th><th>X=0: מצב/פלט</th><th>X=1: מצב/פלט</th></tr>
+                    <tr><td>S0 (התחלה)</td><td>0 0</td><td>S0 / Z=0 → 00/0</td><td>S1 / Z=0 → 01/0</td></tr>
+                    <tr><td>S1 (קיבלנו 1)</td><td>0 1</td><td>S0 / Z=0 → 00/0</td><td>S2 / Z=0 → 10/0</td></tr>
+                    <tr><td>S2 (קיבלנו 11)</td><td>1 0</td><td>S0 / Z=0 → 00/0</td><td>S2 / Z=1 → 10/1</td></tr>
+                </table>
+                <p><strong>שלב 2 – טבלת מעברים בינארית (Q1, Q0, X → Q1+, Q0+, Z):</strong></p>
+                <table>
+                    <tr><th>Q1</th><th>Q0</th><th>X</th><th>Q1+</th><th>Q0+</th><th>D1</th><th>D0</th><th>Z</th></tr>
+                    <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                    <tr><td>0</td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td><td>0</td></tr>
+                    <tr><td>0</td><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                    <tr><td>0</td><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+                    <tr><td>1</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                    <tr><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td><td>0</td><td>1</td></tr>
+                </table>
+                <p><strong>שלב 3 – משוואות:</strong> D1 = X·Q0, D0 = X, Z = Q1·Q0'·X</p>
+                <p><strong>שלב 4 – סימולציה עם קלט X = 1,1,1 (בינארי: 111):</strong></p>
+                <table>
+                    <tr><th>פעימה</th><th>X</th><th>Q1 Q0 (לפני)</th><th>D1 D0</th><th>Q1 Q0 (אחרי)</th><th>Z</th></tr>
+                    <tr><td>0</td><td>–</td><td>0 0</td><td>–</td><td>0 0</td><td>0</td></tr>
+                    <tr><td>1</td><td>1</td><td>0 0</td><td>0 1</td><td>0 1</td><td>0</td></tr>
+                    <tr><td>2</td><td>1</td><td>0 1</td><td>1 0</td><td>1 0</td><td>0</td></tr>
+                    <tr><td>3</td><td>1</td><td>1 0</td><td>1 0</td><td>1 0</td><td><strong>1</strong></td></tr>
+                </table>
+                <p><strong>הסבר:</strong> פעימה 1: 00+1→01 (S0→S1, קיבלנו 1 ראשון). פעימה 2: 01+1→10 (S1→S2, קיבלנו 11). פעימה 3: 10+1→10, Z=Q1·Q0'·X=1·1·1=1 – הרצף "11" זוהה.</p>
+                <p><strong>דוגמה נוספת – X = 0,1,1,1:</strong></p>
+                <table>
+                    <tr><th>פעימה</th><th>X</th><th>Q1 Q0</th><th>Z</th></tr>
+                    <tr><td>0</td><td>–</td><td>0 0</td><td>0</td></tr>
+                    <tr><td>1</td><td>0</td><td>0 0</td><td>0</td></tr>
+                    <tr><td>2</td><td>1</td><td>0 1</td><td>0</td></tr>
+                    <tr><td>3</td><td>1</td><td>1 0</td><td>0</td></tr>
+                    <tr><td>4</td><td>1</td><td>1 0</td><td><strong>1</strong></td></tr>
+                </table>
+                <p>פעימה 4: מצב 10, X=1 → Z=1. הרצף הבינארי 0111 מכיל "11".</p>
+            </div>
+
+            <div class="example-box" style="background: #e8f5e9; border-color: #a5d6a7;">
+                <h4>דוגמה – מזהה רצף "1001" בקלט "1100101011001"</h4>
+                <p><strong>מטרה:</strong> זיהוי הדפוס "1001" בתוך הסדרה 1100101011001. הפלט Z=1 בפעימת השעון שבה מתקבל הביט האחרון (1) של הדפוס.</p>
+
+                <p><strong>מצבים:</strong> S0 (התחלה), S1 (קיבלנו "1"), S2 (קיבלנו "10"), S3 (קיבלנו "100"), S4 (קיבלנו "1001").</p>
+
+                <table>
+                    <tr><th>מצב</th><th>X=0</th><th>X=1</th></tr>
+                    <tr><td>S0</td><td>S0/Z=0</td><td>S1/Z=0</td></tr>
+                    <tr><td>S1</td><td>S2/Z=0</td><td>S1/Z=0</td></tr>
+                    <tr><td>S2</td><td>S3/Z=0</td><td>S1/Z=0</td></tr>
+                    <tr><td>S3</td><td>S0/Z=0</td><td>S4/Z=1</td></tr>
+                    <tr><td>S4</td><td>S0/Z=0</td><td>S1/Z=0</td></tr>
+                </table>
+
+                <p><strong>סימולציה – קלט: 1 1 0 0 1 0 1 0 1 1 0 0 1</strong></p>
+                <table>
+                    <tr><th>פעימה</th><th>X</th><th>מצב לפני</th><th>מצב אחרי</th><th>Z</th><th>הסבר</th></tr>
+                    <tr><td>0</td><td>–</td><td>S0</td><td>S0</td><td>0</td><td>אתחול</td></tr>
+                    <tr><td>1</td><td>1</td><td>S0</td><td>S1</td><td>0</td><td>קיבלנו "1"</td></tr>
+                    <tr><td>2</td><td>1</td><td>S1</td><td>S1</td><td>0</td><td>שמירה על "1"</td></tr>
+                    <tr><td>3</td><td>0</td><td>S1</td><td>S2</td><td>0</td><td>קיבלנו "10"</td></tr>
+                    <tr><td>4</td><td>0</td><td>S2</td><td>S3</td><td>0</td><td>קיבלנו "100"</td></tr>
+                    <tr><td>5</td><td>1</td><td>S3</td><td>S4</td><td><strong>1</strong></td><td>זיהוי "1001" (פעם ראשונה)</td></tr>
+                    <tr><td>6</td><td>0</td><td>S4</td><td>S0</td><td>0</td><td>איפוס</td></tr>
+                    <tr><td>7</td><td>1</td><td>S0</td><td>S1</td><td>0</td><td>קיבלנו "1"</td></tr>
+                    <tr><td>8</td><td>0</td><td>S1</td><td>S2</td><td>0</td><td>קיבלנו "10"</td></tr>
+                    <tr><td>9</td><td>1</td><td>S2</td><td>S1</td><td>0</td><td>"101" – חוזרים ל-S1</td></tr>
+                    <tr><td>10</td><td>1</td><td>S1</td><td>S1</td><td>0</td><td>קיבלנו "1"</td></tr>
+                    <tr><td>11</td><td>0</td><td>S1</td><td>S2</td><td>0</td><td>קיבלנו "10"</td></tr>
+                    <tr><td>12</td><td>0</td><td>S2</td><td>S3</td><td>0</td><td>קיבלנו "100"</td></tr>
+                    <tr><td>13</td><td>1</td><td>S3</td><td>S4</td><td><strong>1</strong></td><td>זיהוי "1001" (פעם שנייה)</td></tr>
+                </table>
+
+                <p><strong>דיאגרמת תזמון – אות השעון והאותות:</strong></p>
+                <pre class="timing-pre" style="background:#263238;color:#aed581;padding:1rem;border-radius:8px;overflow-x:auto;font-family:monospace;font-size:0.85rem;">Clock:  _|_|_|_|_|_|_|_|_|_|_|_|_|_
+         1 2 3 4 5 6 7 8 9 10 11 12 13
+
+X:       1 1 0 0 1 0 1 0 1 1  0  0  1
+         +-1001-+       +-1001-+
+           Z=1              Z=1
+
+Z:       ___________|___________|___
+                   5           13
+</pre>
+                <p><strong>הסבר:</strong> Z=1 בפעימות 5 ו-13 – בשתי הפעמים זוהה הדפוס "1001" (ביטים 2–5 וביטים 10–13).</p>
+            </div>
+
+            <div class="step-box">
+                <h3>שלב 1: בניית טבלת מצבים (Making a State Table)</h3>
+                <p>מגדירים את כל המצבים האפשריים ואת המעברים ביניהם. לכל מצב ולכל ערך קלט, מגדירים את המצב הבא ואת ערך הפלט.</p>
+                <div class="example-box">
+                    <h4>דוגמה – מזהה רצף "11":</h4>
+                    <p>מצבים: S0 (התחלה), S1 (קיבלנו 1 אחד), S2 (קיבלנו 11).</p>
+                    <table>
+                        <tr><th>מצב נוכחי</th><th>X=0</th><th>X=1</th></tr>
+                        <tr><td>S0</td><td>S0 / Z=0</td><td>S1 / Z=0</td></tr>
+                        <tr><td>S1</td><td>S0 / Z=0</td><td>S2 / Z=0</td></tr>
+                        <tr><td>S2</td><td>S0 / Z=0</td><td>S2 / Z=1</td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="step-box">
+                <h3>שלב 2: הקצאת קודים בינאריים למצבים (Assigning Binary Codes to States)</h3>
+                <p>מקצים לכל מצב קוד בינארי ייחודי. מספר הביטים נקבע לפי מספר המצבים (n מצבים דורשים ⌈log₂(n)⌉ flip-flops).</p>
+                <div class="example-box">
+                    <h4>דוגמה – 3 מצבים דורשים 2 flip-flops (Q1Q0):</h4>
+                    <p>S0→00, S1→01, S2→10</p>
+                </div>
+            </div>
+
+            <div class="step-box">
+                <h3>שלב 3: מציאת ערכי כניסות ל-flip-flops (Finding Flip-Flop Input Values)</h3>
+                <p>באמצעות טבלאות העירור, עבור כל מעבר מצב מחשבים את ערכי הכניסות הנדרשים לכל flip-flop.</p>
+                <div class="example-box">
+                    <h4>דוגמה – D flip-flops (D = Q+):</h4>
+                    <p>מעבר S0(00)→S1(01) עם X=1: Q1+Q0+=01, לכן D1=0, D0=1.</p>
+                </div>
+            </div>
+
+            <div class="step-box">
+                <h3>שלב 4: מציאת משוואות לכניסות ה-FF ולפלט (Find Equations for the FF Inputs and Output)</h3>
+                <p>מפשטים את הביטויים הלוגיים (למשל באמצעות מפת Karnaugh) ומקבלים משוואות בוליאניות לכניסות ה-flip-flops ולפלט.</p>
+                <div class="example-box">
+                    <h4>דוגמה – מזהה "11":</h4>
+                    <p>D1 = X·Q0, D0 = X, Z = Q1·Q0'·X (Mealy)</p>
+                </div>
+            </div>
+
+            <div class="step-box">
+                <h3>שלב 5: בניית המעגל (Build the Circuit)</h3>
+                <p>מממשים את המשוואות באמצעות שערים לוגיים ו-flip-flops ומרכיבים את המעגל הפיזי.</p>
+                <div class="example-box">
+                    <h4>דוגמה:</h4>
+                    <p>2 D flip-flops, שער AND ל-D1 (X·Q0), חיבור ישיר X ל-D0, שער AND ל-Z (Q1·Q0'·X).</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section" id="timing">
+            <h2>דיאגרמת תזמון (Timing Diagram)</h2>
+            <p>דיאגרמת תזמון מציגה את שינויי האותות לאורך זמן. מציגים בה:</p>
+            <ul>
+                <li>אות השעון (Clock)</li>
+                <li>אות הקלט</li>
+                <li>מצבי ה-flip-flops (Q)</li>
+                <li>אות הפלט</li>
+            </ul>
+            <p>הדיאגרמה מאפשרת לוודא שהמעגל מתנהג כמצופה ולזהות בעיות תזמון.</p>
+            <div class="example-box">
+                <h4>דוגמה – מזהה "11" עם קלט X=0,1,1,0:</h4>
+                <p>Clock: __|‾|_|‾|_|‾|_  |  X: ___|‾‾‾|___  |  Q1Q0: 00→01→10→00  |  Z: _____|‾|_____</p>
+                <p>בפעימת השעון השלישית (אחרי שני 1-ים) Z=1.</p>
+            </div>
+        </section>
+
+        <section class="content-section img-section" id="s1-output">
+            <h2>תצוגת פלט – s1.png</h2>
+            <p><img src="img/s1.png" alt="פלט סימולציה / דיאגרמת תזמון s1" style="max-width: 600px;"></p>
+            <p class="img-note" style="font-size: 0.9rem; color: #666;">שים את קובץ s1.png בתיקיית <code>img</code>.</p>
+            <div class="example-box">
+                <h4>הסבר הפלט:</h4>
+                <p>התמונה מציגה את פלט הסימולציה של מעגל סדרתי (מזהה רצף או מונה). בדרך כלל מוצגים:</p>
+                <ul>
+                    <li><strong>Clock (שעון):</strong> פעימות השעון שמסנכרנות את ה-flip-flops.</li>
+                    <li><strong>X (קלט):</strong> סדרת הביטים שנכנסת למעגל.</li>
+                    <li><strong>Q1, Q0:</strong> מצבי ה-flip-flops – מייצגים את המצב הפנימי (למשל 00=S0, 01=S1, 10=S2).</li>
+                    <li><strong>Z (פלט):</strong> Z=1 כאשר הרצף "11" מזוהה – כלומר כשהמצב הוא S2 (10) והקלט X=1.</li>
+                </ul>
+                <p>הפלט משתנה בקצב השעון: Q1 ו-Q0 מתעדכנים בפעימת שעון, ו-Z תלוי ב-Q1, Q0 ו-X (מכונת Mealy).</p>
+            </div>
+        </section>
+
+        <section class="content-section" id="dff">
+            <h2>בניית אותו מעגל עם D Flip-Flops</h2>
+            <p>D flip-flop הוא הפשוט ביותר: הכניסה D קובעת ישירות את המצב הבא (Q+ = D). לכן:</p>
+            <ul>
+                <li>אין צורך בטבלאות עירור מורכבות</li>
+                <li>הכניסה D פשוט שווה למצב הבא הרצוי</li>
+                <li>העיצוב פשוט יותר מאשר עם JK או SR flip-flops</li>
+            </ul>
+            <div class="example-box">
+                <h4>דוגמה – מזהה "11" עם D:</h4>
+                <p>עם JK: צריך J1,K1,J0,K0 כפונקציה של Q1,Q0,X. עם D: D1=next(Q1), D0=next(Q0) – פשוט קוראים מהטבלה.</p>
+            </div>
+        </section>
+
+        <section class="content-section" id="truth-tables">
+            <h2>טבלאות אמת לרכיבים (Truth Tables)</h2>
+            <p>להלן טבלאות האמת (המאפיין) של כל סוג flip-flop, עם הסבר על פעולתו.</p>
+
+            <div class="step-box">
+                <h3>SR Flip-Flop (Set-Reset)</h3>
+                <table>
+                    <tr><th>S</th><th>R</th><th>Q</th><th>Q+</th></tr>
+                    <tr><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                    <tr><td>0</td><td>0</td><td>1</td><td>1</td></tr>
+                    <tr><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+                    <tr><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+                    <tr><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+                    <tr><td>1</td><td>0</td><td>1</td><td>1</td></tr>
+                    <tr><td>1</td><td>1</td><td>0</td><td>X</td></tr>
+                    <tr><td>1</td><td>1</td><td>1</td><td>X</td></tr>
+                </table>
+                <p><strong>הסבר:</strong> S=1 מגדיר (Set) את Q ל-1, R=1 מאפס (Reset) את Q ל-0. S=R=0 שומר את המצב. S=R=1 אסור – מצב לא מוגדר (X).</p>
+            </div>
+
+            <div class="step-box">
+                <h3>JK Flip-Flop</h3>
+                <table>
+                    <tr><th>J</th><th>K</th><th>Q</th><th>Q+</th></tr>
+                    <tr><td>0</td><td>0</td><td>0</td><td>0</td></tr>
+                    <tr><td>0</td><td>0</td><td>1</td><td>1</td></tr>
+                    <tr><td>0</td><td>1</td><td>0</td><td>0</td></tr>
+                    <tr><td>0</td><td>1</td><td>1</td><td>0</td></tr>
+                    <tr><td>1</td><td>0</td><td>0</td><td>1</td></tr>
+                    <tr><td>1</td><td>0</td><td>1</td><td>1</td></tr>
+                    <tr><td>1</td><td>1</td><td>0</td><td>1</td></tr>
+                    <tr><td>1</td><td>1</td><td>1</td><td>0</td></tr>
+                </table>
+                <p><strong>הסבר:</strong> כמו SR, אך J=K=1 הופך את Q (toggle) – פתרון לבעיית S=R=1 ב-SR. J=Set, K=Reset.</p>
+            </div>
+
+            <div class="step-box">
+                <h3>D Flip-Flop (Data)</h3>
+                <table>
+                    <tr><th>D</th><th>Q</th><th>Q+</th></tr>
+                    <tr><td>0</td><td>0</td><td>0</td></tr>
+                    <tr><td>0</td><td>1</td><td>0</td></tr>
+                    <tr><td>1</td><td>0</td><td>1</td></tr>
+                    <tr><td>1</td><td>1</td><td>1</td></tr>
+                </table>
+                <p><strong>הסבר:</strong> Q+ = D. הכניסה D נשמרת ב-Q בפעימת השעון. הפשוט ביותר – אין מצב אסור.</p>
+            </div>
+
+            <div class="step-box">
+                <h3>T Flip-Flop (Toggle)</h3>
+                <table>
+                    <tr><th>T</th><th>Q</th><th>Q+</th></tr>
+                    <tr><td>0</td><td>0</td><td>0</td></tr>
+                    <tr><td>0</td><td>1</td><td>1</td></tr>
+                    <tr><td>1</td><td>0</td><td>1</td></tr>
+                    <tr><td>1</td><td>1</td><td>0</td></tr>
+                </table>
+                <p><strong>הסבר:</strong> T=0 שומר את Q. T=1 הופך (toggle): Q+ = Q'. מתאים למונים.</p>
+            </div>
+
+            <div class="step-box">
+                <h3>שערים לוגיים בסיסיים</h3>
+                <p><strong>AND (A·B):</strong></p>
+                <table style="max-width: 200px;">
+                    <tr><th>A</th><th>B</th><th>Y</th></tr>
+                    <tr><td>0</td><td>0</td><td>0</td></tr>
+                    <tr><td>0</td><td>1</td><td>0</td></tr>
+                    <tr><td>1</td><td>0</td><td>0</td></tr>
+                    <tr><td>1</td><td>1</td><td>1</td></tr>
+                </table>
+                <p><strong>OR (A+B):</strong></p>
+                <table style="max-width: 200px;">
+                    <tr><th>A</th><th>B</th><th>Y</th></tr>
+                    <tr><td>0</td><td>0</td><td>0</td></tr>
+                    <tr><td>0</td><td>1</td><td>1</td></tr>
+                    <tr><td>1</td><td>0</td><td>1</td></tr>
+                    <tr><td>1</td><td>1</td><td>1</td></tr>
+                </table>
+                <p><strong>NOT (A'):</strong></p>
+                <table style="max-width: 150px;">
+                    <tr><th>A</th><th>Y</th></tr>
+                    <tr><td>0</td><td>1</td></tr>
+                    <tr><td>1</td><td>0</td></tr>
+                </table>
+                <p><strong>הסבר:</strong> AND: Y=1 רק אם A=B=1. OR: Y=1 אם A או B הוא 1. NOT: Y=A' (הופך).</p>
+            </div>
+        </section>
+
+        <section class="content-section img-section" id="sr-operation">
+            <h2>מעגל SR – sr.png</h2>
+            <p><img src="img/sr.png" alt="מעגל SR Flip-Flop" style="max-width: 100%;"></p>
+            <p class="img-note" style="font-size: 0.9rem; color: #666;">שים את קובץ sr.png בתיקיית <code>img</code>.</p>
+
+            <h3>פעולת SR Flip-Flop</h3>
+            <p>SR (Set-Reset) flip-flop בעל שתי כניסות: S (Set) ו-R (Reset). הפלט Q מתעדכן בפעימת שעון (edge).</p>
+            <ul>
+                <li><strong>S=1, R=0:</strong> Set – Q הופך ל-1.</li>
+                <li><strong>S=0, R=1:</strong> Reset – Q הופך ל-0.</li>
+                <li><strong>S=0, R=0:</strong> Hold – Q נשאר ללא שינוי.</li>
+                <li><strong>S=1, R=1:</strong> אסור – מצב לא מוגדר.</li>
+            </ul>
+
+            <h3>השגת הפלט לפי 4 פעימות שעון</h3>
+            <p>דיאגרמת תזמון – אות השעון (4 פעימות) והאותות S, R, Q:</p>
+            <div class="example-box">
+                <h4>אות השעון – 4 פעימות:</h4>
+                <pre class="timing-pre" style="background:#1a1a2e;color:#fff;padding:1rem;border-radius:8px;overflow-x:auto;font-family:monospace;">Clock:  __|__|__|__|__|__|__|__|__
+         ^  1  ^  2  ^  3  ^  4  (4 פעימות)</pre>
+                <p>העדכון קורה ב־rising edge (מעבר 0→1) של השעון.</p>
+            </div>
+
+            <table>
+                <tr><th>פעימת שעון</th><th>S</th><th>R</th><th>Q (לפני)</th><th>Q (אחרי)</th><th>הסבר</th></tr>
+                <tr><td>0 (אתחול)</td><td>–</td><td>–</td><td>0</td><td>0</td><td>מצב התחלתי</td></tr>
+                <tr><td>1</td><td>1</td><td>0</td><td>0</td><td>1</td><td>Set – Q=1</td></tr>
+                <tr><td>2</td><td>0</td><td>0</td><td>1</td><td>1</td><td>Hold – Q נשאר 1</td></tr>
+                <tr><td>3</td><td>0</td><td>1</td><td>1</td><td>0</td><td>Reset – Q=0</td></tr>
+                <tr><td>4</td><td>0</td><td>0</td><td>0</td><td>0</td><td>Hold – Q נשאר 0</td></tr>
+            </table>
+
+            <div class="step-box">
+                <h4>דיאגרמת תזמון מלאה (4 פעימות):</h4>
+                <pre class="timing-pre" style="background:#f0f4f8;padding:1rem;border-radius:8px;overflow-x:auto;font-family:monospace;border-right:4px solid #1a1a2e;">Clock:  __|__|__|__|__|__|__|__|__
+S:      _____|_____|_________________
+R:      _________________|_____|_____
+Q:      _____|_______________|_______
+             1     2     3     4</pre>
+                <p><strong>פעימה 1:</strong> S=1, R=0 → Q עולה ל-1 (Set).</p>
+                <p><strong>פעימה 2:</strong> S=0, R=0 → Q נשאר 1 (Hold).</p>
+                <p><strong>פעימה 3:</strong> S=0, R=1 → Q יורד ל-0 (Reset).</p>
+                <p><strong>פעימה 4:</strong> S=0, R=0 → Q נשאר 0 (Hold).</p>
+            </div>
+        </section>
+
+        <section class="content-section" id="comparison">
+            <h2>השוואת Flip-Flops (Flip-Flop Comparison)</h2>
+            <table class="comparison-table">
+                <tr>
+                    <th>סוג</th>
+                    <th>כניסות</th>
+                    <th>יתרונות</th>
+                    <th>חסרונות</th>
+                </tr>
+                <tr>
+                    <td>SR</td>
+                    <td>S, R</td>
+                    <td>פשוט</td>
+                    <td>אסור S=R=1</td>
+                </tr>
+                <tr>
+                    <td>JK</td>
+                    <td>J, K</td>
+                    <td>גמיש, J=K=1 הופך</td>
+                    <td>מורכב יותר</td>
+                </tr>
+                <tr>
+                    <td>D</td>
+                    <td>D</td>
+                    <td>פשוט מאוד, Q+=D</td>
+                    <td>פחות גמיש</td>
+                </tr>
+                <tr>
+                    <td>T</td>
+                    <td>T</td>
+                    <td>מונה, T=1 הופך</td>
+                    <td>שימוש מוגבל</td>
+                </tr>
+            </table>
+            <div class="example-box">
+                <h4>דוגמה – מונה עם T:</h4>
+                <p>T=1 תמיד → כל פעימה הופך. D: D=Q' למונה. JK: J=K=1 למונה.</p>
+            </div>
+        </section>
+
+        <section class="content-section" id="mealy-moore">
+            <h2>Mealy לעומת Moore</h2>
+            <table class="comparison-table">
+                <tr>
+                    <th>מאפיין</th>
+                    <th>Mealy</th>
+                    <th>Moore</th>
+                </tr>
+                <tr>
+                    <td>תלות הפלט</td>
+                    <td>הפלט תלוי במצב הנוכחי ובקלט</td>
+                    <td>הפלט תלוי רק במצב הנוכחי</td>
+                </tr>
+                <tr>
+                    <td>מספר מצבים</td>
+                    <td>פחות מצבים בדרך כלל</td>
+                    <td>יותר מצבים לעיתים</td>
+                </tr>
+                <tr>
+                    <td>תזמון</td>
+                    <td>הפלט יכול להשתנות עם הקלט (לא מסונכרן לשעון)</td>
+                    <td>הפלט משתנה רק עם השעון</td>
+                </tr>
+                <tr>
+                    <td>מורכבות</td>
+                    <td>לוגיקת פלט מורכבת יותר</td>
+                    <td>לוגיקת פלט פשוטה יותר</td>
+                </tr>
+            </table>
+            <div class="example-box">
+                <h4>דוגמה – מזהה "11":</h4>
+                <p><strong>Mealy:</strong> Z = Q1·Q0'·X (פלט רק כשבמצב S2 ו-X=1). <strong>Moore:</strong> מצב S2 מפיק Z=1 תמיד; דורש מצב נפרד ל"הכרנו 11".</p>
+            </div>
+
+            <h3>מתי משתמשים ב-Moore ומתי ב-Mealy? דוגמאות מהחיים</h3>
+
+            <div class="step-box">
+                <h4>מתי משתמשים ב-Moore?</h4>
+                <p>כאשר הפלט צריך להיות <strong>יציב ומסונכרן לשעון</strong> – הפלט משתנה רק בפעימת שעון, ולכן קל לתזמן ולמנוע גליצ'ים.</p>
+                <ul>
+                    <li><strong>מעלית:</strong> מצב "קומה 2" מפיק תצוגה "2" – הפלט תלוי רק במצב (איזו קומה), לא בקלט הנוכחי.</li>
+                    <li><strong>רמזור:</strong> מצב "אור אדום" מפיק אור אדום – הפלט קבוע לכל אורך המצב.</li>
+                    <li><strong>מסך LCD:</strong> מצב "הצגת תפריט" – התוכן המוצג תלוי במצב, לא בלחיצה הרגעית.</li>
+                    <li><strong>מנוע צעדים (Stepper):</strong> כל מצב מגדיר מיקום פיזי – הפלט יציב עד מעבר למצב הבא.</li>
+                </ul>
+            </div>
+
+            <div class="step-box">
+                <h4>מתי משתמשים ב-Mealy?</h4>
+                <p>כאשר הפלט צריך להיות <strong>תלוי גם בקלט</strong> – תגובה מיידית לאירוע, או כאשר רוצים <strong>פחות מצבים</strong>.</p>
+                <ul>
+                    <li><strong>מזהה רצף (Sequence Detector):</strong> Z=1 רק כשמגיעים לרצף מסוים <em>והביט הנוכחי מתאים</em> – תלוי במצב ובקלט.</li>
+                    <li><strong>מודם/תקשורת:</strong> זיהוי דפוסים בזרם הנתונים – הפלט משתנה לפי הביט הנכנס.</li>
+                    <li><strong>מערכת אזעקה:</strong> "אזעקה" רק כשהמצב "מאוים" <em>ו</em> חיישן מזהה תנועה – תלוי במצב ובקלט.</li>
+                    <li><strong>מכונת ממכר אוטומטית:</strong> "הזרק מטבע" – הפלט (הזרקה) תלוי במצב (בחירת משקה) ובפעולה (לחיצה על כפתור).</li>
+                </ul>
+            </div>
+
+            <div class="step-box">
+                <h4>סיכום השוואתי</h4>
+                <table>
+                    <tr><th>קריטריון</th><th>Moore</th><th>Mealy</th></tr>
+                    <tr><td>תזמון</td><td>פלט מסונכרן לשעון – מתאים למערכות קריטיות</td><td>פלט יכול להשתנות בין פעימות – דורש תשומת לב לגליצ'ים</td></tr>
+                    <tr><td>מספר מצבים</td><td>יותר מצבים לעיתים</td><td>פחות מצבים – חסכוני</td></tr>
+                    <tr><td>דוגמאות</td><td>מעלית, רמזור, תצוגה, מנוע צעדים</td><td>מזהה רצף, מודם, אזעקה, ממכר אוטומטי</td></tr>
+                </table>
+            </div>
+        </section>
+
+        <section class="content-section img-section" id="mealy-circuit">
+            <h2>מעגל Mealy – maly.png</h2>
+            <p><img src="img/maly.png" alt="מעגל Mealy – מזהה רצף" style="max-width: 100%;"></p>
+            <p class="img-note" style="font-size: 0.9rem; color: #666;">שים את קובץ maly.png בתיקיית <code>img</code>.</p>
+
+            <h3>הסבר מעגל Mealy שלב אחר שלב</h3>
+
+            <div class="step-box">
+                <h4>שלב 1: מבנה כללי</h4>
+                <p>מעגל Mealy מורכב משני חלקים:</p>
+                <ul>
+                    <li><strong>חלק סדרתי (זיכרון):</strong> flip-flops שמאחסנים את המצב הנוכחי (Q1, Q0).</li>
+                    <li><strong>חלק קומבינטורי:</strong> שערים לוגיים שמחשבים את המצב הבא (D1, D0) ואת הפלט (Z).</li>
+                </ul>
+                <p>הפלט Z תלוי במצב הנוכחי ובקלט X – בניגוד ל-Moore שבו Z תלוי רק במצב.</p>
+            </div>
+
+            <div class="step-box">
+                <h4>שלב 2: כניסות ויציאות</h4>
+                <ul>
+                    <li><strong>Clock:</strong> מסנכרן את ה-flip-flops – העדכון קורה בפעימת שעון.</li>
+                    <li><strong>X:</strong> קלט סדרתי (ביט אחד בכל פעימה).</li>
+                    <li><strong>Q1, Q0:</strong> מצב פנימי – מייצגים את המצב הנוכחי (S0=00, S1=01, S2=10).</li>
+                    <li><strong>Z:</strong> פלט – Z=1 כאשר מזוהה הרצף (למשל "11").</li>
+                </ul>
+            </div>
+
+            <div class="step-box">
+                <h4>שלב 3: לוגיקת המצב הבא (Next State)</h4>
+                <p>הכניסות ל-D flip-flops מחשבות את המצב הבא:</p>
+                <ul>
+                    <li><strong>D1 = X·Q0</strong> – עובר ל-S2 (10) רק כש-X=1 ו-Q0=1 (כבר ב-S1).</li>
+                    <li><strong>D0 = X</strong> – עובר ל-S1 (01) כש-X=1; חוזר ל-S0 (00) כש-X=0.</li>
+                </ul>
+                <p>בפעימת שעון: Q1←D1, Q0←D0.</p>
+            </div>
+
+            <div class="step-box">
+                <h4>שלב 4: לוגיקת הפלט (Output)</h4>
+                <p><strong>Z = Q1·Q0'·X</strong> (Mealy) – כאשר Q0' הוא NOT של Q0.</p>
+                <p>Z=1 רק כאשר: המצב הוא S2 (Q1=1, Q0=0) והקלט X=1. כלומר – זיהינו "11" והביט הנוכחי הוא 1.</p>
+                <p>הערה: ב-Mealy הפלט יכול להשתנות בין פעימות שעון (כש-X משתנה), בניגוד ל-Moore.</p>
+            </div>
+
+            <div class="step-box">
+                <h4>שלב 5: זרימת האותות</h4>
+                <ol>
+                    <li>X נכנס ללוגיקה הקומבינטורית.</li>
+                    <li>Q1, Q0 נכנסים גם הם – המצב הנוכחי.</li>
+                    <li>השערים מחשבים D1, D0 ו-Z.</li>
+                    <li>בפעימת שעון: ה-flip-flops מעדכנים Q1←D1, Q0←D0.</li>
+                    <li>Z מופיע בפלט – תלוי ב-Q1, Q0, X (לפני העדכון).</li>
+                </ol>
+            </div>
+
+            <div class="step-box">
+                <h4>שלב 6: דוגמת ריצה (מזהה "11")</h4>
+                <table>
+                    <tr><th>פעימה</th><th>X</th><th>Q1 Q0</th><th>Z</th></tr>
+                    <tr><td>0</td><td>–</td><td>0 0</td><td>0</td></tr>
+                    <tr><td>1</td><td>1</td><td>0 1</td><td>0</td></tr>
+                    <tr><td>2</td><td>1</td><td>1 0</td><td>0</td></tr>
+                    <tr><td>3</td><td>1</td><td>1 0</td><td><strong>1</strong></td></tr>
+                </table>
+                <p>פעימה 3: מצב 10, X=1 → Z=1. הרצף "11" זוהה.</p>
+            </div>
+        </section>
+    </main>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
